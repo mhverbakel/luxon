@@ -38,127 +38,123 @@ function simple(regex) {
   return { regex, deser: ([s]) => s };
 }
 
-function unitForToken(token, loc) {
-  const one = /\d/,
-    two = /\d{2}/,
-    three = /\d{3}/,
-    four = /\d{4}/,
-    oneOrTwo = /\d{1,2}/,
-    oneToThree = /\d{1,3}/,
-    twoToFour = /\d{2,4}/,
-    literal = t => ({ regex: RegExp(t.val), deser: ([s]) => s, literal: true }),
-    unitate = t => {
-      if (token.literal) {
-        return literal(t);
-      }
-      switch (t.val) {
-        // era
-        case 'G':
-          return oneOf(loc.eras('short', false), 0);
-        case 'GG':
-          return oneOf(loc.eras('long', false), 0);
-        // years
-        case 'y':
-          return intUnit(/\d{1,6}/);
-        case 'yy':
-          return intUnit(twoToFour, untruncateYear);
-        case 'yyyy':
-          return intUnit(four);
-        case 'yyyyy':
-          return intUnit(/\d{4,6}/);
-        case 'yyyyyy':
-          return intUnit(/\d{6}/);
-        // months
-        case 'M':
-          return intUnit(oneOrTwo);
-        case 'MM':
-          return intUnit(two);
-        case 'MMM':
-          return oneOf(loc.months('short', false, false), 1);
-        case 'MMMM':
-          return oneOf(loc.months('long', false, false), 1);
-        case 'L':
-          return intUnit(oneOrTwo);
-        case 'LL':
-          return intUnit(two);
-        case 'LLL':
-          return oneOf(loc.months('short', true, false), 1);
-        case 'LLLL':
-          return oneOf(loc.months('long', true, false), 1);
-        // dates
-        case 'd':
-          return intUnit(oneOrTwo);
-        case 'dd':
-          return intUnit(two);
-        // ordinals
-        case 'o':
-          return intUnit(oneToThree);
-        case 'ooo':
-          return intUnit(three);
-        // time
-        case 'HH':
-          return intUnit(two);
-        case 'H':
-          return intUnit(oneOrTwo);
-        case 'hh':
-          return intUnit(two);
-        case 'h':
-          return intUnit(oneOrTwo);
-        case 'mm':
-          return intUnit(two);
-        case 'm':
-          return intUnit(oneOrTwo);
-        case 's':
-          return intUnit(oneOrTwo);
-        case 'ss':
-          return intUnit(two);
-        case 'S':
-          return intUnit(oneToThree);
-        case 'SSS':
-          return intUnit(three);
-        case 'u':
-          return simple(/\d{1,9}/);
-        // meridiem
-        case 'a':
-          return oneOf(loc.meridiems(), 0);
-        // weekYear (k)
-        case 'kkkk':
-          return intUnit(four);
-        case 'kk':
-          return intUnit(twoToFour, untruncateYear);
-        // weekNumber (W)
-        case 'W':
-          return intUnit(oneOrTwo);
-        case 'WW':
-          return intUnit(two);
-        // weekdays
-        case 'E':
-        case 'c':
-          return intUnit(one);
-        case 'EEE':
-          return oneOf(loc.weekdays('short', false, false), 1);
-        case 'EEEE':
-          return oneOf(loc.weekdays('long', false, false), 1);
-        case 'ccc':
-          return oneOf(loc.weekdays('short', true, false), 1);
-        case 'cccc':
-          return oneOf(loc.weekdays('long', true, false), 1);
-        // offset/zone
-        case 'Z':
-        case 'ZZ':
-          return offset(/([+-]\d{1,2})(?::(\d{2}))?/, 2);
-        case 'ZZZ':
-          return offset(/([+-]\d{1,2})(\d{2})?/, 2);
-        // we don't support ZZZZ (PST) or ZZZZZ (Pacific Standard Time) in parsing
-        // because we don't have any way to figure out what they are
-        case 'z':
-          return simple(/[A-Za-z_]{1,256}\/[A-Za-z_]{1,256}/);
-        default:
-          return literal(t);
-      }
-    };
+function literal(t) {
+  return { regex: RegExp(t.val), deser: ([s]) => s, literal: true };
+}
 
-  const unit = unitate(token) || {
+function unitate(token, loc) {
+  if (token.literal) {
+    return literal(token);
+  }
+  switch (token.val) {
+    // era
+    case 'G':
+      return oneOf(loc.eras('short', false), 0);
+    case 'GG':
+      return oneOf(loc.eras('long', false), 0);
+    // years
+    case 'y':
+      return intUnit(/\d{1,6}/);
+    case 'yy':
+      return intUnit(/\d{2,4}/, untruncateYear);
+    case 'yyyy':
+      return intUnit(/\d{4}/);
+    case 'yyyyy':
+      return intUnit(/\d{4,6}/);
+    case 'yyyyyy':
+      return intUnit(/\d{6}/);
+    // months
+    case 'M':
+      return intUnit(/\d{1,2}/);
+    case 'MM':
+      return intUnit(/\d{2}/);
+    case 'MMM':
+      return oneOf(loc.months('short', false, false), 1);
+    case 'MMMM':
+      return oneOf(loc.months('long', false, false), 1);
+    case 'L':
+      return intUnit(/\d{1,2}/);
+    case 'LL':
+      return intUnit(/\d{2}/);
+    case 'LLL':
+      return oneOf(loc.months('short', true, false), 1);
+    case 'LLLL':
+      return oneOf(loc.months('long', true, false), 1);
+    // dates
+    case 'd':
+      return intUnit(/\d{1,2}/);
+    case 'dd':
+      return intUnit(/\d{2}/);
+    // ordinals
+    case 'o':
+      return intUnit(/\d{1,3}/);
+    case 'ooo':
+      return intUnit(/\d{3}/);
+    // time
+    case 'HH':
+      return intUnit(/\d{2}/);
+    case 'H':
+      return intUnit(/\d{1,2}/);
+    case 'hh':
+      return intUnit(/\d{2}/);
+    case 'h':
+      return intUnit(/\d{1,2}/);
+    case 'mm':
+      return intUnit(/\d{2}/);
+    case 'm':
+      return intUnit(/\d{1,2}/);
+    case 's':
+      return intUnit(/\d{1,2}/);
+    case 'ss':
+      return intUnit(/\d{2}/);
+    case 'S':
+      return intUnit(/\d{1,3}/);
+    case 'SSS':
+      return intUnit(/\d{3}/);
+    case 'u':
+      return simple(/\d{1,9}/);
+    // meridiem
+    case 'a':
+      return oneOf(loc.meridiems(), 0);
+    // weekYear (k)
+    case 'kkkk':
+      return intUnit(/\d{4}/);
+    case 'kk':
+      return intUnit(/\d{2,4}/, untruncateYear);
+    // weekNumber (W)
+    case 'W':
+      return intUnit(/\d{1,2}/);
+    case 'WW':
+      return intUnit(/\d{2}/);
+    // weekdays
+    case 'E':
+    case 'c':
+      return intUnit(/\d/);
+    case 'EEE':
+      return oneOf(loc.weekdays('short', false, false), 1);
+    case 'EEEE':
+      return oneOf(loc.weekdays('long', false, false), 1);
+    case 'ccc':
+      return oneOf(loc.weekdays('short', true, false), 1);
+    case 'cccc':
+      return oneOf(loc.weekdays('long', true, false), 1);
+    // offset/zone
+    case 'Z':
+    case 'ZZ':
+      return offset(/([+-]\d{1,2})(?::(\d{2}))?/, 2);
+    case 'ZZZ':
+      return offset(/([+-]\d{1,2})(\d{2})?/, 2);
+    // we don't support ZZZZ (PST) or ZZZZZ (Pacific Standard Time) in parsing
+    // because we don't have any way to figure out what they are
+    case 'z':
+      return simple(/[A-Za-z_]{1,256}\/[A-Za-z_]{1,256}/);
+    default:
+      return literal(token);
+  }
+}
+
+function unitForToken(token, loc) {
+  const unit = unitate(token, loc) || {
     invalidReason: MISSING_FTP
   };
 
@@ -269,20 +265,23 @@ function dateTimeFromMatches(matches) {
  */
 
 export function explainFromTokens(locale, input, format) {
-  const tokens = Formatter.parseFormat(format),
-    units = tokens.map(t => unitForToken(t, locale)),
-    disqualifyingUnit = units.find(t => t.invalidReason);
-
-  if (disqualifyingUnit) {
-    return { input, tokens, invalidReason: disqualifyingUnit.invalidReason };
-  } else {
-    const [regexString, handlers] = buildRegex(units),
-      regex = RegExp(regexString, 'i'),
-      [rawMatches, matches] = match(input, regex, handlers),
-      [result, zone] = matches ? dateTimeFromMatches(matches) : [null, null];
-
-    return { input, tokens, regex, rawMatches, matches, result, zone };
+  const tokens = Formatter.parseFormat(format);
+  const units = [];
+  for (var i = 0; i < tokens.length; i++) {
+    const unit = unitForToken(tokens[i], locale);
+    if (unit.invalidReason) {
+      return { input, tokens, invalidReason: unit.invalidReason };
+    }
+    
+    units.push(unit);
   }
+
+  const [regexString, handlers] = buildRegex(units),
+    regex = RegExp(regexString, 'i'),
+    [rawMatches, matches] = match(input, regex, handlers),
+    [result, zone] = matches ? dateTimeFromMatches(matches) : [null, null];
+
+  return { input, tokens, regex, rawMatches, matches, result, zone };
 }
 
 export function parseFromTokens(locale, input, format) {
